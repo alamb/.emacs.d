@@ -103,7 +103,7 @@
 ;; in that directory.
 ;; See comments in /usr/share/emacs/site-lisp/xcscope.el and man cscope
 ;;(require 'xcscope)
-(load "/usr/share/emacs/site-lisp/xcscope.el")
+;;(load "/usr/share/emacs/site-lisp/xcscope.el")
 
 ;; psvn subversion hooks
 ;;(load "~/elisp/psvn.el")
@@ -199,6 +199,8 @@ directory, select directory. Lastly the file is opened."
 (global-set-key "\C-cf" 'file-cache-ido-find-file)
 
 
+
+
 (custom-set-faces
   ;; custom-set-faces was added by Custom.
   ;; If you edit it by hand, you could mess it up, so be careful.
@@ -219,3 +221,6 @@ directory, select directory. Lastly the file is opened."
 (add-hook 'shell-command-complete-functions
   'bash-completion-dynamic-complete)
 
+
+;; All C++ auto complete stuff
+(load "~/.emacs.d/aal-cyborg.el")

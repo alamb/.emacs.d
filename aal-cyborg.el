@@ -1,6 +1,8 @@
 ;;;;; Config to make emacs auto complete my C++ code. 
 ;;;;; I will show them you can be super efficient C++ coder too (not just Javascript!)
 
+(semantic-mode)
+
 (require 'semantic/ia)
 (require 'semantic/bovine/gcc)
 (defun my-semantic-hook ()
@@ -8,7 +10,6 @@
 (add-hook 'semantic-init-hooks 'my-semantic-hook)
 
 (global-ede-mode t)
-
 
 
 ;; ccache g++ -c -pipe -U__STRICT_ANSI__ -isystem /home/andrew/Nutonian/source-code/third-party/install/include/ -isystem /home/andrew/Nutonian/source-code/tparty -std=c++0x -msse2 -fno-omit-frame-pointer -W -Wall -Wextra -pedantic -Wcast-qual -Wnon-virtual-dtor -Woverloaded-virtual -Wno-unused-parameter -Wno-unused-private-field -isystem /home/andrew/Nutonian/source-code/tparty/ -isystem "/home/andrew/Nutonian/source-code/tparty/cpp-netlib" -g -O0 -g 
@@ -49,9 +50,11 @@
                              )
 )
 
+;; Note that I didn't have great luck with the auto-complete package
+
+;; Bind f2 to find symbol's definition
+(global-set-key [f2] 'semantic-ia-fast-jump)
+;; f4 to open correpsonding header
+(global-set-key [f4] 'ff-find-other-file)
 
 
-(add-to-list 'load-path "/home/andrew/.emacs.d/")
-(require 'auto-complete-config)
-(add-to-list 'ac-dictionary-directories "/home/andrew/.emacs.d/ac-dict")
-(ac-config-default)
