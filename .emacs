@@ -5,7 +5,8 @@
 ;;; uncomment this line to disable loading of "default.el" at startup
 ;; (setq inhibit-default-init t)
 
-(add-to-list 'load-path "~/.emacs.d/lisp/")
+(add-to-list 'load-path "~/.emacs.d")
+(add-to-list 'load-path "~/.emacs.d/emacs-bash-completion")
 
 ;; turn on font-lock mode
 (when (fboundp 'global-font-lock-mode)
@@ -217,3 +218,4 @@ directory, select directory. Lastly the file is opened."
   'bash-completion-dynamic-complete)
 (add-hook 'shell-command-complete-functions
   'bash-completion-dynamic-complete)
+
