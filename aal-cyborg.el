@@ -1,5 +1,6 @@
 ;;;;; Config to make emacs auto complete my C++ code. 
 ;;;;; I will show them you can be super efficient C++ coder too (not just Javascript!)
+;;;;;
 
 (semantic-mode)
 
@@ -10,21 +11,6 @@
 (add-hook 'semantic-init-hooks 'my-semantic-hook)
 
 (global-ede-mode t)
-
-
-;; ccache g++ -c -pipe -U__STRICT_ANSI__ -isystem /home/andrew/Nutonian/source-code/third-party/install/include/ -isystem /home/andrew/Nutonian/source-code/tparty -std=c++0x -msse2 -fno-omit-frame-pointer -W -Wall -Wextra -pedantic -Wcast-qual -Wnon-virtual-dtor -Woverloaded-virtual -Wno-unused-parameter -Wno-unused-private-field -isystem /home/andrew/Nutonian/source-code/tparty/ -isystem "/home/andrew/Nutonian/source-code/tparty/cpp-netlib" -g -O0 -g 
-;;-D_REENTRANT -fPIC -Wall -W -DBOOST_THREAD_USE_LIB -DBOOST_NETWORK_ENABLE_HTTPS -DBOOST_IOSTREAMS_NO_LIB -D_DEBUG
-;; -I../../third-party/install/mkspecs/linux-g++
-;; -I../../ncloud -I../../nu
-;; -I../../third-party/install/include
-;; -I../../../source-code
-;;  -I../../tparty/cpp-netlib
-;;  -I../../tparty/zlib
-;;  -I../../tparty/eureqa-api
-;;  -I../../tparty
-;;  -I../../../../Nutonian
-;;  -I../../ncloud
-
 
 (ede-cpp-root-project "Nutonian"
                 :name "Nutonian Source Code"
@@ -52,9 +38,45 @@
 
 ;; Note that I didn't have great luck with the auto-complete package
 
-;; Bind f2 to find symbol's definition
+;;;;;;;;;;;;;;;;; Key bindings to get behavior similar to QT-Creator ;;;;;;;;;;;;;
+
+
+;; f1 to find documentation
+(global-set-key [f1] 'semantic-ia-show-doc)
+;; f2 to find symbol's definition
 (global-set-key [f2] 'semantic-ia-fast-jump)
 ;; f4 to open correpsonding header
 (global-set-key [f4] 'ff-find-other-file)
+;; alt-left goes back to previous cursor position
+(global-set-key (kbd "M-<left>") 'pop-global-mark)
 
 
+
+(defun tc-recompile()
+  " recompile and don't show the compilation buffer"
+  (interactive)
+  (let ((orig-win (selected-window))
+        (compilation-win (get-buffer-window "*compilation*" t)))
+  (when compilation-win
+      (select-window compilation-win)
+      (bury-buffer)
+      (select-window orig-win))
+    (recompile)
+  )
+)
+
+;; C-c C-% will set a buffer local hook to use mode-compile after saving
+(global-set-key '[(ctrl c) (ctrl %)]
+                (lambda () 
+                  (interactive)
+                  (if (member 'tc-recompile after-save-hook)
+                      (progn
+                        (setq after-save-hook 
+                            (remove 'tc-recompile after-save-hook))
+                        (message "No longer compiling after saving."))
+                    (progn
+                      (add-to-list 'after-save-hook 'tc-recompile)
+                      (message "Compiling after saving.")))))
+
+
+ 
