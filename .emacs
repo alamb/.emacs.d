@@ -81,7 +81,7 @@
 (setq vc-follow-symlinks t)
 
 ;; Add extra highlighting for selected words
-(defvar c-extra-keywords 
+(defvar c-extra-keywords
   '(("[^A-Z_]\\(FIX\\(ME\\)?\\)[^A-Z_]" 1 font-lock-warning-face t)
     ("[^A-Z_]\\(TRICKY\\)[^A-Z_]" 1 font-lock-warning-face t)
     ("[^A-Z_]\\(LEAK\\)[^A-Z_]" 1 font-lock-warning-face t)
@@ -123,7 +123,7 @@
   (local-set-key "\M-s" 'gud-step)
   (local-set-key "\M-n" 'gud-next)
   (local-set-key "\M-i" 'gud-stepi)
-  (local-set-key "\M-j" 'gud-nexti)  ;; j for "jump"?? 
+  (local-set-key "\M-j" 'gud-nexti)  ;; j for "jump"??
   (local-set-key "\M-c" 'gud-cont)
   (local-set-key "\M-u" 'gud-up)
   (local-set-key "\M-d" 'gud-down)
@@ -145,7 +145,7 @@
 ;;
 ;; To populate the cache from $SOURCE:
 ;;   M-x aal-load-filecache
-;; To open a file, 
+;; To open a file,
 ;;   C-c C-f filename (this being the binding provided below)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -164,7 +164,7 @@
 (add-to-list 'file-cache-filter-regexps "\\.dat$")
 
 ;; load filecache w/ SOURCE files
-(defun aal-load-filecache () 
+(defun aal-load-filecache ()
   (interactive)
    (file-cache-add-directory-recursively(getenv "SOURCE")))
 
@@ -213,7 +213,7 @@ directory, select directory. Lastly the file is opened."
 
 
 ;; Bash auto completion mode
-(autoload 'bash-completion-dynamic-complete 
+(autoload 'bash-completion-dynamic-complete
   "bash-completion"
   "BASH completion hook")
 (add-hook 'shell-dynamic-complete-functions
@@ -224,3 +224,24 @@ directory, select directory. Lastly the file is opened."
 
 ;; All C++ auto complete stuff
 (load "~/.emacs.d/aal-cyborg.el")
+(custom-set-variables
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(show-paren-mode t)
+ '(tool-bar-mode nil))
+
+;;; Indulge coworker OCD and remove trailing whitespace on text file
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
+
+
+
+;; Colorize in compile mode
+;; http://stackoverflow.com/questions/13397737/ansi-coloring-in-compilation-mode
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (toggle-read-only)
+  (ansi-color-apply-on-region (point-min) (point-max))
+  (toggle-read-only))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
