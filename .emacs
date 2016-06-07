@@ -29,7 +29,7 @@
 ;; Turn off the annoying tool bar w/ icons
 (cond ((>= emacs-major-version 21)
        (tool-bar-mode nil)))
-(toggle-uniquify-buffer-names)
+;;(toggle-uniquify-buffer-names)
 (setq visible-bell t)
 (setq font-lock-maximum-decoration t)
 
@@ -96,23 +96,6 @@
 (font-lock-add-keywords 'perl-mode c-extra-keywords)
 
 
-;; The cscope source-file-tree navigator is more powerful than etags.
-;; To set up for a directory hierarchy, open a C file, use the cscope pulldown
-;; menu to select 'Cscope Database/Set initial directory' to the top of
-;; the hierarchy, then use '/Create list and index' to create cscope.* files
-;; in that directory.
-;; See comments in /usr/share/emacs/site-lisp/xcscope.el and man cscope
-;;(require 'xcscope)
-;;(load "/usr/share/emacs/site-lisp/xcscope.el")
-
-;; psvn subversion hooks
-;;(load "~/elisp/psvn.el")
-;;(require 'psvn)
-;;(load "/etc/emacs/site-start.d/50psvn.el")
-
-;; Enable smart completion mode..
-;;(semantic-mode 1)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; GDB stuff
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -129,7 +112,10 @@
   (local-set-key "\M-d" 'gud-down)
   (local-set-key "\M-f" 'gud-finish))
 
-(add-hook 'gdb-mode-hook 'gud-hooks)
+(add-hook 'gud-gdb-mode-hook 'gud-hooks)
+
+;; Bind Ctrl+x Space to setting breakpoints
+(global-set-key (kbd "C-x SPC") 'gud-break)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -199,8 +185,6 @@ directory, select directory. Lastly the file is opened."
 (global-set-key "\C-cf" 'file-cache-ido-find-file)
 
 
-
-
 (custom-set-faces
   ;; custom-set-faces was added by Custom.
   ;; If you edit it by hand, you could mess it up, so be careful.
@@ -210,7 +194,6 @@ directory, select directory. Lastly the file is opened."
 
 ;; no stupid toolbar
 (tool-bar-mode -1)
-
 
 ;; Bash auto completion mode
 (autoload 'bash-completion-dynamic-complete
@@ -235,6 +218,8 @@ directory, select directory. Lastly the file is opened."
 ;;; Indulge coworker OCD and remove trailing whitespace on text file
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 
+;;; Indent xml/html by 4 spaces rather than default 2
+(setq nxml-child-indent 4)
 
 
 ;; Colorize in compile mode
@@ -245,3 +230,22 @@ directory, select directory. Lastly the file is opened."
   (ansi-color-apply-on-region (point-min) (point-max))
   (toggle-read-only))
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+
+
+;; Add NodeJS error format line number parsing
+;; https://benhollis.net/blog/2015/12/20/nodejs-stack-traces-in-emacs-compilation-mode/
+(setq compilation-error-regexp-alist-alist
+      (cons '(node "^[  ]+at \\(?:[^\(\n]+ \(\\)?\\([a-zA-Z\.0-9_/-]+\\):\\([0-9]+\\):\\([0-9]+\\)\)?$"
+                         1 ;; file
+                         2 ;; line
+                         3 ;; column
+                         )
+            compilation-error-regexp-alist-alist))
+(setq compilation-error-regexp-alist
+      (cons 'node compilation-error-regexp-alist))
+
+
+;; Rust mode in emacs
+(add-to-list 'load-path "~/.emacs.d/rust-mode/")
+(autoload 'rust-mode "rust-mode" nil t)
+(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
