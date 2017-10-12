@@ -3,3 +3,4 @@ session.*
 auto-save-list
 *.elc
 semanticdb
+ido.last
