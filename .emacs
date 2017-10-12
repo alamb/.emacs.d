@@ -232,19 +232,6 @@ directory, select directory. Lastly the file is opened."
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 
 
-;; Add NodeJS error format line number parsing
-;; https://benhollis.net/blog/2015/12/20/nodejs-stack-traces-in-emacs-compilation-mode/
-(setq compilation-error-regexp-alist-alist
-      (cons '(node "^[  ]+at \\(?:[^\(\n]+ \(\\)?\\([a-zA-Z\.0-9_/-]+\\):\\([0-9]+\\):\\([0-9]+\\)\)?$"
-                         1 ;; file
-                         2 ;; line
-                         3 ;; column
-                         )
-            compilation-error-regexp-alist-alist))
-(setq compilation-error-regexp-alist
-      (cons 'node compilation-error-regexp-alist))
-
-
 ;; Rust mode in emacs
 (add-to-list 'load-path "~/.emacs.d/rust-mode/")
 (autoload 'rust-mode "rust-mode" nil t)
