@@ -8,7 +8,37 @@
 (add-to-list 'load-path "~/.emacs.d")
 (add-to-list 'load-path "~/.emacs.d/emacs-bash-completion")
 
-;; turn on font-lock mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; el-get package
+;; https://github.com/dimitri/el-get
+;; to install packages, use M-x el-get-install
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
+
+(unless (require 'el-get nil 'noerror)
+  (with-current-buffer
+      (url-retrieve-synchronously
+       "https://raw.githubusercontent.com/dimitri/el-get/master/el-get-install.el")
+    (goto-char (point-max))
+    (eval-print-last-sexp)))
+
+(add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
+(el-get 'sync)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Python Autocomplete
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; http://tkf.github.io/emacs-jedi/released/#screenshots
+;;
+;; Pre reqs to install:
+;; pip install Jedi epc
+;;
+(setq jedi:setup-keys t)
+(require 'jedi)
+(add-hook 'python-mode-hook 'jedi:setup)
+(add-hook 'python-mode-hook 'jedi:ac-setup)
+
+;; turn on font-lock (give me colors, yo) mode
 (when (fboundp 'global-font-lock-mode)
   (global-font-lock-mode t))
 
@@ -230,9 +260,3 @@ directory, select directory. Lastly the file is opened."
   (ansi-color-apply-on-region (point-min) (point-max))
   (toggle-read-only))
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
-
-
-;; Rust mode in emacs
-(add-to-list 'load-path "~/.emacs.d/rust-mode/")
-(autoload 'rust-mode "rust-mode" nil t)
-(add-to-list 'auto-mode-alist '("\\.rs\\'" . rust-mode))
