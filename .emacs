@@ -7,23 +7,27 @@
 
 (add-to-list 'load-path "~/.emacs.d")
 (add-to-list 'load-path "~/.emacs.d/emacs-bash-completion")
+(add-to-list 'load-path "~/.emacs.d/elpa/dash-20171028.854")
+(add-to-list 'load-path "~/.emacs.d/elpa/s-20171102.227")
+
+;;; Get some silversufer
+(add-to-list 'load-path "~/.emacs.d/elpa/ag-20170915.1249")
+(require 'ag)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; el-get package
-;; https://github.com/dimitri/el-get
-;; to install packages, use M-x el-get-install
+;; MELPA package installer
+;; https://melpa.org/#/getting-started
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(add-to-list 'load-path "~/.emacs.d/el-get/el-get")
-
-(unless (require 'el-get nil 'noerror)
-  (with-current-buffer
-      (url-retrieve-synchronously
-       "https://raw.githubusercontent.com/dimitri/el-get/master/el-get-install.el")
-    (goto-char (point-max))
-    (eval-print-last-sexp)))
-
-(add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
-(el-get 'sync)
+(require 'package) ;; You might already have this line
+(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
+                    (not (gnutls-available-p))))
+       (url (concat (if no-ssl "http" "https") "://melpa.org/packages/")))
+  (add-to-list 'package-archives (cons "melpa" url) t))
+(when (< emacs-major-version 24)
+  ;; For important compatibility libraries like cl-lib
+  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
+(package-initialize) ;; You might already have this line
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Python Autocomplete
