@@ -10,10 +10,6 @@
 (add-to-list 'load-path "~/.emacs.d/elpa/dash-20171028.854")
 (add-to-list 'load-path "~/.emacs.d/elpa/s-20171102.227")
 
-;;; Get some silversufer
-(add-to-list 'load-path "~/.emacs.d/elpa/ag-20170915.1249")
-(require 'ag)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; MELPA package installer
@@ -28,6 +24,19 @@
   ;; For important compatibility libraries like cl-lib
   (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
 (package-initialize) ;; You might already have this line
+
+;;; Magit stuff
+(global-set-key (kbd "C-x g") 'magit-status)
+(require 'magit-gh-pulls)
+(add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; YAML mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(require 'yaml-mode)
+(add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Python Autocomplete
@@ -264,3 +273,6 @@ directory, select directory. Lastly the file is opened."
   (ansi-color-apply-on-region (point-min) (point-max))
   (toggle-read-only))
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+
+;; Change default grep-find command
+;;(grep-apply-setting 'grep-find-command '("find . -type f -name '*.py' -exec grep -nH -e  \\{\\} +" . 47))
