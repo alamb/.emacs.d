@@ -5,10 +5,8 @@
 ;;; uncomment this line to disable loading of "default.el" at startup
 ;; (setq inhibit-default-init t)
 
-(add-to-list 'load-path "~/.emacs.d")
+(add-to-list 'load-path "~/.emacs.d/magit-gh-pulls/")
 (add-to-list 'load-path "~/.emacs.d/emacs-bash-completion")
-(add-to-list 'load-path "~/.emacs.d/elpa/dash-20171028.854")
-(add-to-list 'load-path "~/.emacs.d/elpa/s-20171102.227")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
