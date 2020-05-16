@@ -5,14 +5,10 @@
 ;;; uncomment this line to disable loading of "default.el" at startup
 ;; (setq inhibit-default-init t)
 
-(add-to-list 'load-path "~/.emacs.d/magit-gh-pulls/")
-(add-to-list 'load-path "~/.emacs.d/emacs-bash-completion")
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; MELPA package installer
-;; https://melpa.org/#/getting-started
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;; MELPA package installer
+;; ;; https://melpa.org/#/getting-started
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (require 'package) ;; You might already have this line
 (let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
                     (not (gnutls-available-p))))
@@ -24,14 +20,15 @@
 (package-initialize) ;; You might already have this line
 
 ;;; Magit stuff
-(global-set-key (kbd "C-x g") 'magit-status)
-(require 'magit-gh-pulls)
-(add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
-
+;; M-x package-install RET magit
+;;(global-set-key (kbd "C-x g") 'magit-status)
+;;(require 'magit-gh-pulls)
+;;(add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; YAML mode
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; M-x package-install RET yaml-mode
 (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
 
@@ -227,16 +224,17 @@ directory, select directory. Lastly the file is opened."
 
 
 (custom-set-faces
-  ;; custom-set-faces was added by Custom.
-  ;; If you edit it by hand, you could mess it up, so be careful.
-  ;; Your init file should contain only one such instance.
-  ;; If there is more than one, they won't work right.
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
  )
 
 ;; no stupid toolbar
 (tool-bar-mode -1)
 
 ;; Bash auto completion mode
+;; M-x package-install RET bash-completion
 (autoload 'bash-completion-dynamic-complete
   "bash-completion"
   "BASH completion hook")
@@ -249,10 +247,13 @@ directory, select directory. Lastly the file is opened."
 ;; All C++ auto complete stuff
 (load "~/.emacs.d/aal-cyborg.el")
 (custom-set-variables
-  ;; custom-set-variables was added by Custom.
-  ;; If you edit it by hand, you could mess it up, so be careful.
-  ;; Your init file should contain only one such instance.
-  ;; If there is more than one, they won't work right.
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (lsp-mode bash-completion magit yaml-mode jedi aggressive-indent ag)))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
