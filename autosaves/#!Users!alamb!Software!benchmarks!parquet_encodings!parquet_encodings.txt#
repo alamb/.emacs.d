@@ -1,0 +1,252 @@
+I just spent some time looking into parquet encodings. It turns out that the parquet files written by delorean/master were always dictionary encoding everything, due to a misunderstanding on my part of how the rust parquet property writer works.
+
+When I fixed that and applied the intended encodings, here are the results:
+
+```
+170M    metrics.lp            Raw line-protocol
+ 16M	metrics.lp.gz         gzip'd line protocol
+6.0M	out-rle               Parquet files created from master
+5.5M	out-delta-timestamps  Parquet files with timestamps encoded with DELTA_BINARY_PACKED encoder
+5.9M	out-plain-float       Parquet files with float measurements encoded with PLAIN (not dictionary) encoder
+5.4M	out-both              Parquet files with timestamps -> DELTA_BINARY_PACKED, float measurements -> PLAIN
+```
+
+My conclusion is that we should implement the encodings as specified in https://github.com/influxdata/delorean/blob/master/docs/encoding_thoughts.md as much as possible.
+
+I think the float measurements would get better compression if we used BYTE_STREAM_SPLIT encoding -- however, the rust parquet writer doesn't support that encoding (it was added in parquet version 2.8 https://github.com/apache/parquet-format/blob/master/CHANGES.md#version-280 but the rust implementation only supports parquet-version 2.4: https://github.com/apache/arrow/tree/master/rust/parquet#supported-parquet-version).
+
+The full results are below:
+
+********
+Dictionary encode everything (what is what master does, due to a misunderstanding on my part of how property writer works)
+ ~/Software/delorean/target/release/delorean convert metrics.lp out-rle/
+********
+
+
+out-rle: default, what is on master
+6.0M	out-rle
+
+alamb@MacBook-Pro parquet_encodings % ~/Software/delorean/target/release/delorean stats out-rle/cpu.parquet
+~/Software/delorean/target/release/delorean stats out-rle/cpu.parquet
+[2020-06-22T21:25:58Z INFO  delorean::commands::stats] stats starting
+Storage statistics:
+Column Stats 'cpu' [0]
+  Total rows: 398990, DataType: String, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  139979/  259718) 2.8067 bits per row
+Column Stats 'host' [1]
+  Total rows: 398990, DataType: String, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6088/    3972) 0.1221 bits per row
+Column Stats 'usage_iowait' [2]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_guest_nice' [3]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_user' [4]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  931280/ 1123552) 18.6727 bits per row
+Column Stats 'usage_system' [5]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  828060/  982915) 16.6031 bits per row
+Column Stats 'usage_idle' [6]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: ( 1048383/ 1209701) 21.0207 bits per row
+Column Stats 'usage_nice' [7]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_irq' [8]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_softirq' [9]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_steal' [10]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_guest' [11]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'timestamp' [12]
+  Total rows: 398990, DataType: Integer, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (   74010/  127273) 1.4839 bits per row
+
+out-rle/cpu.parquet: total columns/rows/bytes: (      13/  398990/ 3120889) 62.5758 bits per row
+
+------------------
+
+
+********
+Using DELTA_BINARY_PACKED for timestamps:
+Dictionary encode everything else
+ ~/Software/delorean/target/release/delorean convert metrics.lp out-delta-timestamps
+********
+
+du -s -h out-delta-timestamps/
+5.5M	out-delta-timestamps/
+
+alamb@MacBook-Pro parquet_encodings %  ~/Software/delorean/target/release/delorean stats out-delta-timestamps/cpu.parquet
+ ~/Software/delorean/target/release/delorean stats out-delta-timestamps/cpu.parquet
+[2020-06-23T12:37:04Z INFO  delorean::commands::stats] stats starting
+Storage statistics:
+Column Stats 'cpu' [0]
+  Total rows: 398990, DataType: String, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  139979/  259718) 2.8067 bits per row
+Column Stats 'host' [1]
+  Total rows: 398990, DataType: String, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6088/    3972) 0.1221 bits per row
+Column Stats 'usage_iowait' [2]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_guest_nice' [3]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_user' [4]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  931280/ 1123552) 18.6727 bits per row
+Column Stats 'usage_system' [5]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  828060/  982915) 16.6031 bits per row
+Column Stats 'usage_idle' [6]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: ( 1048383/ 1209701) 21.0207 bits per row
+Column Stats 'usage_nice' [7]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_irq' [8]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_softirq' [9]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_steal' [10]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'usage_guest' [11]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    4300/    2550) 0.0862 bits per row
+Column Stats 'timestamp' [12]
+  Total rows: 398990, DataType: Integer, Compression: {"Enc: [DELTA_BINARY_PACKED, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (   44206/ 1189905) 0.8864 bits per row
+
+out-delta-timestamps/cpu.parquet: total columns/rows/bytes: (      13/  398990/ 3090617) 61.9688 bits per row
+
+
+
+
+********
+Using PLAIN (not dictionary encoding) encoding for floating point (not dictionary)
+Dictionary encode everything else
+ ~/Software/delorean/target/release/delorean convert metrics.lp out-plain-float
+********
+
+alamb@MacBook-Pro parquet_encodings % du -s -h out-plain-float/
+du -s -h out-plain-float/
+5.9M	out-plain-float/
+alamb@MacBook-Pro parquet_encodings %  ~/Software/delorean/target/release/delorean stats out-plain-float/cpu.parquet
+ ~/Software/delorean/target/release/delorean stats out-plain-float/cpu.parquet
+[2020-06-23T12:43:26Z INFO  delorean::commands::stats] stats starting
+Storage statistics:
+Column Stats 'cpu' [0]
+  Total rows: 398990, DataType: String, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  139979/  259718) 2.8067 bits per row
+Column Stats 'host' [1]
+  Total rows: 398990, DataType: String, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6088/    3972) 0.1221 bits per row
+Column Stats 'usage_iowait' [2]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_guest_nice' [3]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_user' [4]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  895955/ 3193370) 17.9645 bits per row
+Column Stats 'usage_system' [5]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  836076/ 3193370) 16.7638 bits per row
+Column Stats 'usage_idle' [6]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: ( 1005858/ 3193370) 20.1681 bits per row
+Column Stats 'usage_nice' [7]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_irq' [8]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_softirq' [9]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_steal' [10]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_guest' [11]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'timestamp' [12]
+  Total rows: 398990, DataType: Integer, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (   74010/  127273) 1.4839 bits per row
+
+out-plain-float/cpu.parquet: total columns/rows/bytes: (      13/  398990/ 3059693) 61.3488 bits per row
+
+
+
+********
+Using DELTA_BINARY_PACKED for timestamps:
+Using PLAIN (not dictionary encoding) encoding for floating point
+Dictionary encode everything else
+ ~/Software/delorean/target/release/delorean convert metrics.lp out-both
+********
+
+
+
+alamb@MacBook-Pro parquet_encodings % du -s -h out-both/
+du -s -h out-both/
+5.4M	out-both/
+
+
+
+alamb@MacBook-Pro parquet_encodings %  ~/Software/delorean/target/release/delorean stats out-both/cpu.parquet
+ ~/Software/delorean/target/release/delorean stats out-both/cpu.parquet
+[2020-06-23T12:58:22Z INFO  delorean::commands::stats] stats starting
+Storage statistics:
+Column Stats 'cpu' [0]
+  Total rows: 398990, DataType: String, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  139979/  259718) 2.8067 bits per row
+Column Stats 'host' [1]
+  Total rows: 398990, DataType: String, Compression: {"Enc: Dictionary, Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6088/    3972) 0.1221 bits per row
+Column Stats 'usage_iowait' [2]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_guest_nice' [3]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_user' [4]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  895955/ 3193370) 17.9645 bits per row
+Column Stats 'usage_system' [5]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (  836076/ 3193370) 16.7638 bits per row
+Column Stats 'usage_idle' [6]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: ( 1005858/ 3193370) 20.1681 bits per row
+Column Stats 'usage_nice' [7]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_irq' [8]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_softirq' [9]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_steal' [10]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'usage_guest' [11]
+  Total rows: 398990, DataType: Float, Compression: {"Enc: [PLAIN, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (    6142/ 3193320) 0.1232 bits per row
+Column Stats 'timestamp' [12]
+  Total rows: 398990, DataType: Integer, Compression: {"Enc: [DELTA_BINARY_PACKED, RLE], Comp: GZIP"}
+  Compressed/Uncompressed Bytes: (   44206/ 1189905) 0.8864 bits per row
+
+out-both/cpu.parquet: total columns/rows/bytes: (      13/  398990/ 3029423) 60.7418 bits per row

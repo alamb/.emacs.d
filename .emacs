@@ -5,6 +5,10 @@
 ;;; uncomment this line to disable loading of "default.el" at startup
 ;; (setq inhibit-default-init t)
 
+;; Turn off the terrible giant warning icon
+(setq visible-bell t)
+(setq ring-bell-function 'ignore)
+
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ;; MELPA package installer
 ;; ;; https://melpa.org/#/getting-started
@@ -21,9 +25,24 @@
 
 ;;; Magit stuff
 ;; M-x package-install RET magit
-;;(global-set-key (kbd "C-x g") 'magit-status)
+(global-set-key (kbd "C-x g") 'magit-status)
 ;;(require 'magit-gh-pulls)
 ;;(add-hook 'magit-mode-hook 'turn-on-magit-gh-pulls)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Use rust-analyzer (have to install via
+;; https://rust-analyzer.github.io/manual.html#rust-analyzer-language-server-binary
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(setq lsp-rust-server 'rust-analyzer)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Don't leave emacs droppings all over the place
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(setq backup-directory-alist `(("." . "~/.emacs.d/backups/")))
+(setq auto-save-file-name-transforms `((".*" "~/.emacs.d/autosaves/" t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; YAML mode
@@ -31,20 +50,6 @@
 ;; M-x package-install RET yaml-mode
 (require 'yaml-mode)
 (add-to-list 'auto-mode-alist '("\\.yml\\'" . yaml-mode))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Python Autocomplete
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; http://tkf.github.io/emacs-jedi/released/#screenshots
-;;
-;; Pre reqs to install:
-;; pip install Jedi epc
-;;
-(setq jedi:setup-keys t)
-(require 'jedi)
-(add-hook 'python-mode-hook 'jedi:setup)
-(add-hook 'python-mode-hook 'jedi:ac-setup)
 
 ;; turn on font-lock (give me colors, yo) mode
 (when (fboundp 'global-font-lock-mode)
@@ -111,8 +116,6 @@
 
 (add-hook 'c-mode-hook 'c-hooks)
 (add-hook 'c++-mode-hook 'c-hooks)
-
-;; TODO: make some reasonable key bindings
 
 ;; Ensure that  we don't get  asked about following symlinks into CVS
 ;; controlled sources (I don't care!)
@@ -253,7 +256,7 @@ directory, select directory. Lastly the file is opened."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (lsp-mode bash-completion magit yaml-mode jedi aggressive-indent ag)))
+    (magit-gh-pulls dap-mode dash-docs dash-at-point rust-mode lsp-ui company yasnippet go-mode ## lsp-mode bash-completion magit yaml-mode jedi aggressive-indent ag)))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
@@ -275,3 +278,32 @@ directory, select directory. Lastly the file is opened."
 
 ;; Change default grep-find command
 ;;(grep-apply-setting 'grep-find-command '("find . -type f -name '*.py' -exec grep -nH -e  \\{\\} +" . 47))
+
+
+
+;; lsp-mode
+;; M-x package-install RET lsp-mode RET
+;; M-x package-install RET lsp-ui RET
+;; Had to remove old version of dash and reinstall lps-mode
+;; https://github.com/magnars/dash.el/pull/277#issuecomment-482494706
+(require 'lsp-mode)
+(add-hook 'prog-mode-hook #'lsp)
+
+;; M-x package-install RET company RET
+(setq company-minimum-prefix-length 1
+      company-idle-delay 0.0) ;; default is 0.2
+
+
+;; gopls mode
+;; install go mode
+;; M-x package-install RET go-mode RET
+;; Install the language server itself (installs in $HOME/go/bin)
+;; alamb@Andrews-MBP Software % GO111MODULE=on go get golang.org/x/tools/gopls@latest
+;;(setq lsp-gopls-staticcheck t)
+;;(setq lsp-eldoc-render-all t)
+;;(setq lsp-gopls-complete-unimported t)
+
+
+;; M-x package-install RET rust-mode RET
+;; Install the rust language server (rls)
+;; rustup component add rls rust-analysis rust-src
