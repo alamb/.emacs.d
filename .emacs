@@ -9,19 +9,13 @@
 (setq visible-bell t)
 (setq ring-bell-function 'ignore)
 
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ;; MELPA package installer
-;; ;; https://melpa.org/#/getting-started
-;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'package) ;; You might already have this line
-(let* ((no-ssl (and (memq system-type '(windows-nt ms-dos))
-                    (not (gnutls-available-p))))
-       (url (concat (if no-ssl "http" "https") "://melpa.org/packages/")))
-  (add-to-list 'package-archives (cons "melpa" url) t))
-(when (< emacs-major-version 24)
-  ;; For important compatibility libraries like cl-lib
-  (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/")))
-(package-initialize) ;; You might already have this line
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Package manager
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+
 
 ;;; Magit stuff
 ;; M-x package-install RET magit
@@ -255,8 +249,7 @@ directory, select directory. Lastly the file is opened."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   (quote
-    (magit-gh-pulls dap-mode dash-docs dash-at-point rust-mode lsp-ui company yasnippet go-mode ## lsp-mode bash-completion magit yaml-mode jedi aggressive-indent ag)))
+   '(lsp-jedi protobuf-mode protocols git-link dap-mode lsp-ui flycheck lsp-treemacs lsp-mode magit-gh-pulls dash-at-point rust-mode go-mode ## bash-completion magit yaml-mode ag))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
@@ -307,3 +300,66 @@ directory, select directory. Lastly the file is opened."
 ;; M-x package-install RET rust-mode RET
 ;; Install the rust language server (rls)
 ;; rustup component add rls rust-analysis rust-src
+
+;;; Use rg (ripgrep) instead of grep for searching
+;;; https://stegosaurusdormant.com/emacs-ripgrep/
+(require 'grep)
+(grep-apply-setting
+ 'grep-find-command
+ '("rg -n -H --no-heading -e '' $(git rev-parse --show-toplevel || pwd)" . 27)
+ )
+;;; C-x C-g for for grep
+(global-set-key (kbd "C-x C-g") 'grep-find)
+
+
+;;; C-x C-g for for grep
+(require 'protobuf-mode)
+
+
+;;; python lsp mode via jedi
+;;;
+;;; Install using:
+;;; pip install -U jedi-language-server
+(require 'lsp-jedi)
+
+;;; Debugging for go
+(require 'dap-go)
+;;; Debugging for rust
+(require 'dap-gdb-lldb)
+(require 'dap-lldb)
+
+
+;;(gud-def gud-nexti "nexti %p" nil)
+(global-set-key (kbd "\M-s") 'dap-step-in)
+(global-set-key (kbd "\M-n") 'dap-next)
+;;(global-set-key "\M-i" 'gud-stepi)
+;;(global-set-key "\M-j" 'gud-nexti)  ;; j for "jump"??
+(global-set-key (kbd "\M-c") 'dap-continue)
+(global-set-key (kbd "\M-u") 'dap-up-stack-frame)
+(global-set-key (kbd "\M-d") 'dap-down-stack-frame)
+(global-set-key (kbd "\M-f") 'dap-step-out)
+
+;; override C-x SPC to toggle breakpoints
+(global-set-key (kbd "C-x SPC") 'dap-breakpoint-toggle)
+
+
+(dap-register-debug-template
+  "Launch fluxtest"
+  (list :type "go"
+        :request "launch"
+        :name "Launch fluxtest"
+        :mode "debug"
+        :program nil
+        :buildFlags "-gcflags '-N -l'"
+        :args "-v -p /Users/alamb/Software/idpe/flux.zip --test range_nsecs_group_count"
+        :env nil
+        :envFile nil))
+
+
+(dap-register-debug-template "Rust::LLDB Run Configuration"
+                             (list :type "lldb"
+                                   :request "launch"
+                                   :name "LLDB::Run"
+                           :gdbpath "/Users/alamb/.cargo/bin/rust-lldb"
+                                   :target nil
+                                   :cwd nil))
