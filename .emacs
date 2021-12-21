@@ -256,7 +256,7 @@ directory, select directory. Lastly the file is opened."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(lsp-jedi protobuf-mode protocols git-link dap-mode lsp-ui flycheck lsp-treemacs lsp-mode magit-gh-pulls dash-at-point rust-mode go-mode ## bash-completion magit yaml-mode ag))
+   '(company json-mode lsp-jedi protobuf-mode protocols git-link dap-mode lsp-ui flycheck lsp-treemacs lsp-mode magit-gh-pulls dash-at-point rust-mode go-mode ## bash-completion magit yaml-mode ag))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
@@ -288,6 +288,10 @@ directory, select directory. Lastly the file is opened."
 ;; https://github.com/magnars/dash.el/pull/277#issuecomment-482494706
 (require 'lsp-mode)
 (add-hook 'prog-mode-hook #'lsp)
+(add-hook 'after-init-hook 'global-company-mode)
+
+(require 'use-package)
+(use-package lsp-ui)
 
 ;; M-x package-install RET company RET
 (setq company-minimum-prefix-length 1
