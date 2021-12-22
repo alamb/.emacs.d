@@ -237,6 +237,10 @@ directory, select directory. Lastly the file is opened."
 ;; no stupid toolbar
 (tool-bar-mode -1)
 
+;; Save my command history
+(savehist-mode)
+
+
 ;; Bash auto completion mode
 ;; M-x package-install RET bash-completion
 (autoload 'bash-completion-dynamic-complete
