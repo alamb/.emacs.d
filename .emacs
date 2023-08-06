@@ -2,6 +2,11 @@
 ;; Andrew Lamb's .emacs  file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;; Fix image-type: Invalid image type svg at the startup of Emacs.
+;; https://emacs.stackexchange.com/questions/74289/emacs-28-2-error-in-macos-ventura-image-type-invalid-image-type-svg
+(setq image-types (cons 'svg image-types))
+
+
 ;;; uncomment this line to disable loading of "default.el" at startup
 ;; (setq inhibit-default-init t)
 
@@ -80,7 +85,6 @@
 ;; Stuff from the emacs "standards" by Bill Mann
 (if (fboundp 'show-paren-mode)
     (show-paren-mode 1))			; 20.1 highlite the matching paren
-(setq tags-revert-without-query t)	        ; reread changed TAGS tables
 
 ;; Stop at the end of the file, not just add lines
 (setq next-line-add-newlines nil)
@@ -260,7 +264,7 @@ directory, select directory. Lastly the file is opened."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(company json-mode lsp-jedi protobuf-mode protocols git-link dap-mode lsp-ui flycheck lsp-treemacs lsp-mode magit-gh-pulls dash-at-point rust-mode go-mode ## bash-completion magit yaml-mode ag))
+   '(flycheck-rust company json-mode lsp-jedi protobuf-mode protocols git-link dap-mode lsp-ui flycheck lsp-treemacs lsp-mode magit-gh-pulls dash-at-point rust-mode go-mode ## bash-completion magit yaml-mode ag))
  '(show-paren-mode t)
  '(tool-bar-mode nil))
 
@@ -291,11 +295,10 @@ directory, select directory. Lastly the file is opened."
 ;; Had to remove old version of dash and reinstall lps-mode
 ;; https://github.com/magnars/dash.el/pull/277#issuecomment-482494706
 (require 'lsp-mode)
+(require 'lsp-ui)
 (add-hook 'prog-mode-hook #'lsp)
 (add-hook 'after-init-hook 'global-company-mode)
 
-(require 'use-package)
-(use-package lsp-ui)
 
 ;; M-x package-install RET company RET
 (setq company-minimum-prefix-length 1
@@ -327,15 +330,13 @@ directory, select directory. Lastly the file is opened."
 (global-set-key (kbd "C-x C-g") 'grep-find)
 
 
-;;; C-x C-g for for grep
 (require 'protobuf-mode)
-
 
 ;;; python lsp mode via jedi
 ;;;
 ;;; Install using:
 ;;; pip install -U jedi-language-server
-(require 'lsp-jedi)
+;;;(require 'lsp-jedi)
 
 ;;; Debugging for go
 (require 'dap-go)
@@ -356,25 +357,3 @@ directory, select directory. Lastly the file is opened."
 
 ;; override C-x SPC to toggle breakpoints
 (global-set-key (kbd "C-x SPC") 'dap-breakpoint-toggle)
-
-
-(dap-register-debug-template
-  "Launch fluxtest"
-  (list :type "go"
-        :request "launch"
-        :name "Launch fluxtest"
-        :mode "debug"
-        :program nil
-        :buildFlags "-gcflags '-N -l'"
-        :args "-v -p /Users/alamb/Software/idpe/flux.zip --test range_nsecs_group_count"
-        :env nil
-        :envFile nil))
-
-
-(dap-register-debug-template "Rust::LLDB Run Configuration"
-                             (list :type "lldb"
-                                   :request "launch"
-                                   :name "LLDB::Run"
-                           :gdbpath "/Users/alamb/.cargo/bin/rust-lldb"
-                                   :target nil
-                                   :cwd nil))
